@@ -106,6 +106,7 @@ if st.button("Submit", type="primary"):
                 response_text = get_response(model, input_prompt, image)
             except Exception as exc:  # noqa: BLE001
                 st.error(format_generation_error(exc))
+                st.error(f"Failed to generate response: {exc}")
             else:
                 st.subheader("Bot Response")
                 st.write(response_text)

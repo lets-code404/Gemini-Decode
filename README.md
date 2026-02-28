@@ -33,7 +33,3 @@ streamlit run app.py
 1. Upload a `.jpg`, `.jpeg`, or `.png` document.
 2. Optionally enter an instruction (for example: *"Translate to English and summarize in 5 bullets"*).
 3. Click **Submit** to get Gemini's response.
-
-
-## Troubleshooting
-- If you see a permission/suspension error after clicking **Submit**, your API key is inactive or suspended. Create a new key in Google AI Studio and update `GOOGLE_API_KEY` in `.env`.
