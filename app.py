@@ -3,6 +3,7 @@ import os
 from typing import Optional
 
 from dotenv import load_dotenv
+from google.api_core import exceptions as google_exceptions
 import google.generativeai as genai
 from PIL import Image, UnidentifiedImageError
 import streamlit as st
@@ -48,6 +49,30 @@ def get_response(model: genai.GenerativeModel, input_text: str, image: Image.Ima
     return getattr(response, "text", "No response text was returned by the model.")
 
 
+def format_generation_error(exc: Exception) -> str:
+    """Map provider exceptions to safe, user-actionable messages."""
+    if isinstance(exc, google_exceptions.PermissionDenied):
+        raw_message = str(exc)
+        if "CONSUMER_SUSPENDED" in raw_message:
+            return (
+                "Your Google API key is suspended or disabled. "
+                "Generate a new key in Google AI Studio, ensure billing/project access is active, "
+                "then update GOOGLE_API_KEY in your .env file."
+            )
+        return (
+            "Permission denied by Gemini API. Verify that your GOOGLE_API_KEY is valid and has "
+            "access to the Generative Language API."
+        )
+
+    if isinstance(exc, google_exceptions.Unauthenticated):
+        return "Authentication failed. Check GOOGLE_API_KEY in your .env file."
+
+    if isinstance(exc, google_exceptions.ResourceExhausted):
+        return "Quota exceeded. Please wait and retry or increase your Gemini API quota."
+
+    return "The model request failed. Please try again in a moment."
+
+
 st.set_page_config(page_title=APP_TITLE)
 st.header(APP_TITLE)
 st.caption(
@@ -80,6 +105,7 @@ if st.button("Submit", type="primary"):
             try:
                 response_text = get_response(model, input_prompt, image)
             except Exception as exc:  # noqa: BLE001
+                st.error(format_generation_error(exc))
                 st.error(f"Failed to generate response: {exc}")
             else:
                 st.subheader("Bot Response")
